@@ -2,16 +2,22 @@ import asyncio
 from bleak import BleakClient
 from asyncio_mqtt import Client
 import json
+import time
+from threading import Timer
+import datetime
 
 # Address of lamp bulb
 address = 'CA:A9:12:02:DC:01'
 wall_light = 'CA:A9:12:02:D9:6F'
 addresses = [address, wall_light]
+client_list = []
 
 reconnect_interval = 3  # [seconds]
 
 UUID_WRITE_RGB = '0000ffe1-0000-1000-8000-00805f9b34fb'
 
+timer = 10*60 # 10 minute timeout
+motion = False
 on_off = True
 master_key = b'mk:0000'
 all_on = b'open'
@@ -30,12 +36,43 @@ from random import randrange
 from asyncio_mqtt import Client, MqttError
 
 
+
 def to_rgb(val, brightness):
     rgb_list = list(int(hex((val + (1 << 64)) % (1 << 64))[-6:][i:i + 2], 16) for i in (0, 2, 4))
     rgb_list[:] = [int(elem * (brightness / 100)) for elem in rgb_list]
     rgb_ctl_str = ':'.join(map(str, rgb_list)) + ':'
 
     return rgb_ctl_str
+
+
+async def motion_timer():
+    global timer
+    global motion
+    while True:
+        await asyncio.sleep(1)
+
+        if datetime.datetime.now().hour >= 19:
+            if timer > 0:
+                timer -= 1
+                if motion:
+                    print('TIMER NOT OVER, MOTION TRIGGERED')
+                    for client in client_list:
+                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
+                    timer = 10
+                    motion = False
+            else:
+                if motion:
+                    print('MOTION TRIGGERED, TIME RESET')
+                    for client in client_list:
+                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
+                    timer = 10
+                    motion = False
+                else:
+                    print('MOTION TIMEOUT')
+                    # Turn off lights, reset timer
+                    for client in client_list:
+                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_off), True)
+                    timer = 10
 
 
 async def advanced_example(id, bleak_client):
@@ -49,15 +86,15 @@ async def advanced_example(id, bleak_client):
         stack.push_async_callback(cancel_tasks, tasks)
 
         # Connect to the MQTT broker
-        client = Client("192.168.50.1")
+        client = Client('192.168.50.1')
         await stack.enter_async_context(client)
 
         topic_filters = (
-            "test/wall",
-            "test/lamp",
-            "test/onoff",
-            "test/allcontrol",
-            "test/colorpresets"
+            'test/wall',
+            'test/lamp',
+            'test/onoff',
+            'test/allcontrol',
+            'test/colorpresets'
         )
         for topic_filter in topic_filters:
             # Log all messages that matches the filter
@@ -75,22 +112,27 @@ async def advanced_example(id, bleak_client):
         # Subscribe to topic(s)
         # 🤔 Note that we subscribe *after* starting the message
         # loggers. Otherwise, we may miss retained messages.
-        await client.subscribe("test/#")
+        await client.subscribe('test/#')
 
         # Wait for everything to complete (or fail due to, e.g., network
         # errors)
         await asyncio.gather(*tasks)
 
 async def log_messages(messages, template, id, client):
+    global motion
     global on_off
     async for message in messages:
         # 🤔 Note that we assume that the message paylod is an
         # UTF8-encoded string (hence the `bytes.decode` call).
         mesg_payload = message.payload.decode()
         formatted_mesg = template.format(mesg_payload)
-        print(mesg_payload)
-        print(formatted_mesg)
-        if 'wall' in formatted_mesg and id == 1: # Wall bulb
+        #print(mesg_payload)
+        #print(type(mesg_payload))
+        #print(formatted_mesg)
+        if 'cameraMotionDetector' in mesg_payload:
+            motion = True
+            await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
+        elif 'wall' in formatted_mesg and id == 1: # Wall bulb
             json_data = json.loads(mesg_payload)  # Grab brightness/rgb from json sent
             brightness = json_data['mqtt_dashboard']['brightness']
             rgb_int = json_data['mqtt_dashboard']['color']
@@ -207,20 +249,17 @@ def run(addresses):
     for number, address in enumerate(addresses):
         loop.create_task(connect_to_device(address, loop, number))
 
+    loop.create_task(motion_timer())
+
     loop.run_forever()
+
 
 async def connect_to_device(address, loop, id):
     while True:
         try:
             async with BleakClient(address, loop=loop) as client:
                 print("Connected to ", address)
-                print(id)
-                if id == 0: # Lamp = 0
-                    # Subscribe to lamp topic, both lights topic
-                    print('ID 0')
-                else: # Wall light = 1
-                    # Subscribe to wall light topic, both lights topic
-                    print('ID 1')
+                client_list.append(client)
                 await client.write_gatt_char(UUID_WRITE_RGB, bytearray(master_key), True)
                 while True:
                     try:
