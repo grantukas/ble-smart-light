@@ -34,7 +34,7 @@ reconnect_interval = 3  # [seconds]
 UUID_WRITE_RGB = '0000ffe1-0000-1000-8000-00805f9b34fb'
 
 #motion = False
-timer_sec = 600 # 10 minute timeout
+timer_sec = 20 # 10 minute timeout
 timer = timer_sec
 on_off = True
 master_key = b'mk:0000'
@@ -76,12 +76,14 @@ async def motion_timer():
             if timer > 0:
                 timer -= 1
                 if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
+                    print('Motion detected')
                     for client in client_list:
                         await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
                     timer = timer_sec
                     #motion = False
             else:
                 if GPIO.input(PIR_PIN) and on_off: # Turn on lights, reset timer
+                    print('Motion detected')
                     for client in client_list:
                         await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
                     timer = timer_sec
