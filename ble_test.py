@@ -101,7 +101,7 @@ async def mqtt_control(id, bleak_client):
         stack.push_async_callback(cancel_tasks, tasks)
 
         # Connect to the MQTT broker
-        client = Client('192.168.50.1')
+        client = Client('localhost')
         await stack.enter_async_context(client)
 
         # Filter by topic
