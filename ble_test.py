@@ -33,14 +33,14 @@ reconnect_interval = 3  # [seconds]
 # Bluetooth UUID to write RGB ctl values
 UUID_WRITE_RGB = '0000ffe1-0000-1000-8000-00805f9b34fb'
 
-timer_sec = 20 # 10 minute timeout
+timer_sec = 600 # 10 minute timeout
 timer = timer_sec
 on_off = True
 master_key = b'mk:0000'
 all_on = b'open'
 all_off = b'close'
 
-PIR_PIN = 600
+PIR_PIN = 15
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN) # Input from PIR sensor
