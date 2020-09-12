@@ -33,7 +33,6 @@ reconnect_interval = 3  # [seconds]
 # Bluetooth UUID to write RGB ctl values
 UUID_WRITE_RGB = '0000ffe1-0000-1000-8000-00805f9b34fb'
 
-#motion = False
 timer_sec = 20 # 10 minute timeout
 timer = timer_sec
 on_off = True
@@ -41,7 +40,7 @@ master_key = b'mk:0000'
 all_on = b'open'
 all_off = b'close'
 
-PIR_PIN = 15
+PIR_PIN = 600
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(PIR_PIN, GPIO.IN) # Input from PIR sensor
@@ -68,26 +67,21 @@ def to_rgb(val, brightness):
 # Turn on lights according to PIR sensor
 async def motion_timer():
     global timer
-    #global motion
     while True: # Countdown every second, poll for motion from PIR
         await asyncio.sleep(1)
 
-        if datetime.datetime.now().hour >= 16: # 19
+        if datetime.datetime.now().hour >= 18: # After 6pm sense motion
             if timer > 0:
                 timer -= 1
                 if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
-                    print('Motion detected')
                     for client in client_list:
                         await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
                     timer = timer_sec
-                    #motion = False
             else:
                 if GPIO.input(PIR_PIN) and on_off: # Turn on lights, reset timer
-                    print('Motion detected')
                     for client in client_list:
                         await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
                     timer = timer_sec
-                    #motion = False
                 else: # Turn off lights, reset timer
                     for client in client_list:
                         await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_off), True)
