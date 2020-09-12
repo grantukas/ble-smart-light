@@ -142,6 +142,11 @@ async def log_messages(messages, template, id, client):
             brightness = json_data['mqtt_dashboard']['brightness']
             rgb_int = json_data['mqtt_dashboard']['color']
 
+            if brightness == 0:
+                on_off = False
+            else:
+                on_off = True
+
             rgb_ctl = to_rgb(rgb_int, brightness)
             ctl_str = 'ctl:255:' + rgb_ctl
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(ctl_str, 'utf8'), True)
@@ -149,6 +154,11 @@ async def log_messages(messages, template, id, client):
             json_data = json.loads(mesg_payload)  # Grab brightness/rgb from json sent
             brightness = json_data['mqtt_dashboard']['brightness']
             rgb_int = json_data['mqtt_dashboard']['color']
+
+            if brightness == 0:
+                on_off = False
+            else:
+                on_off = True
 
             rgb_ctl = to_rgb(rgb_int, brightness)
             ctl_str = 'ctl:255:' + rgb_ctl
@@ -161,6 +171,7 @@ async def log_messages(messages, template, id, client):
                 await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
                 on_off = True
         elif 'allcontrol' in formatted_mesg: # Change all light bulb color
+            on_off = True
             json_data = json.loads(mesg_payload) # Grab brightness/rgb from json sent
             brightness = json_data['mqtt_dashboard']['brightness']
             rgb_int = json_data['mqtt_dashboard']['color']
@@ -169,6 +180,7 @@ async def log_messages(messages, template, id, client):
             ctl_str = 'ctl:255:' + rgb_ctl
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(ctl_str, 'utf8'), True)
         elif 'colorpresets' in formatted_mesg: # Change color based on preset values
+            on_off = True
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(mesg_payload, 'utf8'), True)
 
 
