@@ -90,6 +90,7 @@ async def motion_timer():
         except Exception as e:
             print(e)
             print('Continuing')
+            continue
 
 
 # Connect to MQTT and listen for messages
