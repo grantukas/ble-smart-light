@@ -68,24 +68,28 @@ def to_rgb(val, brightness):
 async def motion_timer():
     global timer
     while True: # Countdown every second, poll for motion from PIR
-        await asyncio.sleep(1)
+        try:
+            await asyncio.sleep(1)
 
-        if datetime.datetime.now().hour >= 18: # After 6pm sense motion
-            if timer > 0:
-                timer -= 1
-                if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
-                    for client in client_list:
-                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
-                    timer = timer_sec
-            else:
-                if GPIO.input(PIR_PIN) and on_off: # Turn on lights, reset timer
-                    for client in client_list:
-                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
-                    timer = timer_sec
-                else: # Turn off lights, reset timer
-                    for client in client_list:
-                        await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_off), True)
-                    timer = timer_sec
+            if datetime.datetime.now().hour >= 18: # After 6pm sense motion
+                if timer > 0:
+                    timer -= 1
+                    if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
+                        for client in client_list:
+                            await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
+                        timer = timer_sec
+                else:
+                    if GPIO.input(PIR_PIN) and on_off: # Turn on lights, reset timer
+                        for client in client_list:
+                            await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_on), True)
+                        timer = timer_sec
+                    else: # Turn off lights, reset timer
+                        for client in client_list:
+                            await client.write_gatt_char(UUID_WRITE_RGB, bytearray(all_off), True)
+                        timer = timer_sec
+        except Exception as e:
+            print(e)
+            print('Continuing...')
 
 
 # Connect to MQTT and listen for messages
