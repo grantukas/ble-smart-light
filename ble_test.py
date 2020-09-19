@@ -71,7 +71,7 @@ async def motion_timer():
         try:
             await asyncio.sleep(1)
 
-            if datetime.datetime.now().hour >= 18: # After 6pm sense motion
+            if datetime.datetime.now().hour >= 18 or datetime.datetime.now().hour <= 2: # Between 6pm-2am sense motion
                 if timer > 0:
                     timer -= 1
                     if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
