@@ -230,6 +230,7 @@ async def connect_to_device(address, loop, id):
         except Exception as e:
             print(e)
             print('Trying to reconnect...')
+            client_list.remove(client)
 
 
 if __name__ == "__main__":
