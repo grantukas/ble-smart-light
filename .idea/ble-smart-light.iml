@@ -4,5 +4,7 @@
     <content url="file://$MODULE_DIR$" />
     <orderEntry type="jdk" jdkName="Python 3.7 (Python Environment)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="CPSC408-TaskMonitor" />
+    <orderEntry type="module" module-name="BLE Testing" />
   </component>
 </module>

@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$USER_HOME$/Documents/Research Haptic Sleeve/BLE Testing/.idea/BLE Testing.iml" filepath="$USER_HOME$/Documents/Research Haptic Sleeve/BLE Testing/.idea/BLE Testing.iml" />
+      <module fileurl="file://$USER_HOME$/Documents/Spring 2020/Database/CPSC408-TaskMonitor/.idea/CPSC408-TaskMonitor.iml" filepath="$USER_HOME$/Documents/Spring 2020/Database/CPSC408-TaskMonitor/.idea/CPSC408-TaskMonitor.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/ble-smart-light.iml" filepath="$PROJECT_DIR$/.idea/ble-smart-light.iml" />
     </modules>
   </component>
