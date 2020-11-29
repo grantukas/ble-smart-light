@@ -72,7 +72,7 @@ async def motion_timer():
             await asyncio.sleep(1)
 
             if datetime.datetime.now().hour >= 18 or datetime.datetime.now().hour <= 2: # Between 6pm-2am sense motion
-                #print(timer) # FOR TESTING PURPOSES
+                print(timer) # FOR TESTING PURPOSES
                 if timer > 0:
                     timer -= 1
                     if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
@@ -189,7 +189,6 @@ async def log_messages(messages, template, id, client):
             on_off = True
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(mesg_payload, 'utf8'), True)
         elif 'timeout' in formatted_mesg: # Change motion timer timeout
-            print(type(mesg_payload))
             timer_sec =  int(mesg_payload) * 60
 
 
