@@ -72,6 +72,7 @@ async def motion_timer():
             await asyncio.sleep(1)
 
             if datetime.datetime.now().hour >= 18 or datetime.datetime.now().hour <= 2: # Between 6pm-2am sense motion
+                #print(timer) # FOR TESTING PURPOSES
                 if timer > 0:
                     timer -= 1
                     if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
@@ -111,7 +112,8 @@ async def mqtt_control(id, bleak_client):
             'test/lamp',
             'test/onoff',
             'test/allcontrol',
-            'test/colorpresets')
+            'test/colorpresets',
+            'test/timeout')
 
         for topic_filter in topic_filters:
             # Log all messages that matches the filter
@@ -135,13 +137,11 @@ async def mqtt_control(id, bleak_client):
 
 # Log messages, decode and activate lights based on message content
 async def log_messages(messages, template, id, client):
-    #global motion
     global on_off
     async for message in messages:
         mesg_payload = message.payload.decode()
         formatted_mesg = template.format(mesg_payload)
-        #if 'cameraMotionDetector' in mesg_payload: # Toggle motion to true for timer coroutine to activate lights
-        #    motion = True
+
         if 'wall' in formatted_mesg and id == 1: # Wall bulb
             json_data = json.loads(mesg_payload)  # Grab brightness/rgb from json sent
             brightness = json_data['mqtt_dashboard']['brightness']
@@ -187,6 +187,12 @@ async def log_messages(messages, template, id, client):
         elif 'colorpresets' in formatted_mesg: # Change color based on preset values
             on_off = True
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(mesg_payload, 'utf8'), True)
+        elif 'timeout' in formatted_mesg:
+            print('Timeout changed')
+            print('mesg_payload')
+            print(mesg_payload)
+            print('formatted message')
+            print(formatted_mesg)
 
 
 async def cancel_tasks(tasks):
