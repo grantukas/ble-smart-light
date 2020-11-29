@@ -138,6 +138,7 @@ async def mqtt_control(id, bleak_client):
 # Log messages, decode and activate lights based on message content
 async def log_messages(messages, template, id, client):
     global on_off
+    global timer_sec
     async for message in messages:
         mesg_payload = message.payload.decode()
         formatted_mesg = template.format(mesg_payload)
@@ -187,12 +188,9 @@ async def log_messages(messages, template, id, client):
         elif 'colorpresets' in formatted_mesg: # Change color based on preset values
             on_off = True
             await client.write_gatt_char(UUID_WRITE_RGB, bytearray(mesg_payload, 'utf8'), True)
-        elif 'timeout' in formatted_mesg:
-            print('Timeout changed')
-            print('mesg_payload')
-            print(mesg_payload)
-            print('formatted message')
-            print(formatted_mesg)
+        elif 'timeout' in formatted_mesg: # Change motion timer timeout
+            print(type(mesg_payload))
+            timer_sec =  int(mesg_payload) * 60
 
 
 async def cancel_tasks(tasks):
