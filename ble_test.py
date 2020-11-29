@@ -26,7 +26,8 @@ RGB color picker to ctl
 # Address of lamp bulb
 lamp = 'CA:A9:12:02:DC:01'
 wall_light = 'CA:A9:12:02:D9:6F'
-addresses = [lamp, wall_light]
+wall_light2 = 'CA:A9:12:03:45:5F'
+addresses = [lamp, wall_light, wall_light2]
 client_list = []
 reconnect_interval = 3  # [seconds]
 
@@ -72,7 +73,6 @@ async def motion_timer():
             await asyncio.sleep(1)
 
             if datetime.datetime.now().hour >= 18 or datetime.datetime.now().hour <= 2: # Between 6pm-2am sense motion
-                print(timer) # FOR TESTING PURPOSES
                 if timer > 0:
                     timer -= 1
                     if GPIO.input(PIR_PIN) and on_off: # If lights are manually turned off, motion will NOT trigger on
@@ -143,7 +143,7 @@ async def log_messages(messages, template, id, client):
         mesg_payload = message.payload.decode()
         formatted_mesg = template.format(mesg_payload)
 
-        if 'wall' in formatted_mesg and id == 1: # Wall bulb
+        if 'wall' in formatted_mesg and (id == 1 or id == 2): # Wall bulb
             json_data = json.loads(mesg_payload)  # Grab brightness/rgb from json sent
             brightness = json_data['mqtt_dashboard']['brightness']
             rgb_int = json_data['mqtt_dashboard']['color']
@@ -204,7 +204,7 @@ async def cancel_tasks(tasks):
 
 
 # Main method to kick off async coroutines
-# Lamp id = 0, wall light = 1
+# Lamp id = 0, wall light = 1, wall light 2 = 2
 def run(addresses):
     loop = asyncio.get_event_loop()
     for number, address in enumerate(addresses):
