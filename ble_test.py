@@ -238,4 +238,4 @@ async def connect_to_device(address, loop, id):
 
 
 if __name__ == "__main__":
-    run([lamp, wall_light])
+    run(addresses)
